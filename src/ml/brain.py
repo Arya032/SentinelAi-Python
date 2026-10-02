@@ -1,3 +1,4 @@
+import os
 import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -32,7 +33,11 @@ clf = RandomForestClassifier(n_estimators=10)
 clf.fit(X_train, y_train)
 
 # 4. SAVE THE INTELLIGENCE
-# We save the trained model to a file so 'eyes.py' can use it later.
-joblib.dump(clf, "brain_model.pkl")
+# We save the trained model to src/ml/models/brain_model.pkl
+models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+os.makedirs(models_dir, exist_ok=True)
+model_path = os.path.join(models_dir, "brain_model.pkl")
 
-print("SUCCESS: Brain trained and saved as 'brain_model.pkl'")
+joblib.dump(clf, model_path)
+
+print(f"SUCCESS: Brain trained and saved to '{model_path}'")
