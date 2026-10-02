@@ -24,6 +24,9 @@ wheels/
 venv/
 ENV/
 
+# Separate Website Repo
+website/
+
 # Archives & Binaries
 *.zip
 *.tar.gz
