@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelAI — Cybersecurity So Simple, It Runs On Peace Of Mind</title>
+  <meta name="description" content="SentinelAI silently guards your business data 24/7. No complex setup, no technical jargon. Built for business leaders.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidianBase: '#07080a',
+            indigoGlass: '#0b101d',
+            electricCyan: '#00f2fe',
+            emeraldMint: '#10b981',
+            amberGold: '#f59e0b',
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#07080a] text-white selection:bg-[#10b981] selection:text-[#07080a]">
+
+  <!-- 2px Top Scroll Progress Bar -->
+  <div id="top-progress-bar"></div>
+
+  <!-- Fixed WebGL Canvas Strictly in Background (z-index: 0) -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Dynamic Cursor Spotlight (z-index: 2) -->
+  <div id="cursor-spotlight"></div>
+
+  <!-- Content Wrapper Strictly Above Canvas (z-index: 10) -->
+  <div id="content-wrapper">
+
+    <!-- ─── Header / Navbar ────────────────────────────────────────────── -->
+    <header class="fixed top-0 left-0 w-full z-50 px-6 lg:px-16 py-5 backdrop-blur-xl bg-[#0f172a]/80 border-b border-white/10">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        
+        <!-- Brand Logo -->
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-2xl bg-[#10b981]/15 border border-[#10b981]/40 flex items-center justify-center text-[#10b981] group-hover:scale-105 transition-transform">
+            <i class="ph ph-shield-check text-xl"></i>
+          </div>
+          <span class="font-bold text-xl tracking-wide text-white">
+            Sentinel<span class="text-[#10b981]">AI</span>
+          </span>
+        </a>
+
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex items-center gap-8 text-xs font-semibold text-[#94a3b8]">
+          <a href="#robot-section" class="hover:text-white transition-colors">Demo</a>
+          <a href="#security-audit" class="hover:text-white transition-colors">30-Sec Audit</a>
+          <a href="#protection-options" class="hover:text-white transition-colors">Protection Stack</a>
+          <button id="nav-login-btn" class="hover:text-white transition-colors cursor-pointer">Login</button>
+        </nav>
+
+        <!-- Navbar Action -->
+        <div>
+          <button id="nav-cta-btn" class="btn-mint py-3 px-7 text-xs font-bold cursor-pointer">
+            <span>Protect My Business</span>
+            <i class="ph ph-shield-check text-base"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ─── Hero Section (Human-Centric & Non-Technical) ────────────────── -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center px-6 lg:px-16 pt-28 pb-20 text-center">
+      <div class="max-w-4xl mx-auto space-y-8 z-10">
+        
+        <!-- Mode Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131b2e] border border-[#1f293d]">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-ping"></span>
+          <span class="text-xs font-semibold text-[#94a3b8]">Simple & Automatic // Built for Busy Business Owners</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.15] tracking-tight text-white">
+          Security so simple, you can focus on <span class="text-[#10b981]">GROWING YOUR BUSINESS</span>.
+        </h1>
+
+        <!-- Subheadline -->
+        <p class="text-base sm:text-xl text-[#94a3b8] max-w-2xl mx-auto leading-relaxed font-normal">
+          SentinelAI works quietly in the background like a trusted guard. Zero setup hassle, zero complicated settings, zero tech experience needed.
+        </p>
+
+        <!-- Primary CTA Button (Emerald Mint Pill) -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button id="hero-cta-btn" class="btn-mint cursor-pointer py-4 px-10 text-xs font-bold">
+            <i class="ph ph-shield-check text-xl"></i>
+            <span>Protect My Business Today</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── 3D Sentinel Robot + Screen-Projected Speech Cloud Section ──── -->
+    <section id="robot-section" class="relative max-w-6xl mx-auto px-4 sm:px-6 my-10 min-h-[580px] sm:min-h-[640px] flex items-center justify-center overflow-visible z-10">
+      
+      <!-- 3D Canvas & Speech Anchor Viewport -->
+      <div id="robot-canvas-container" class="w-full max-w-5xl h-[480px] sm:h-[580px] lg:h-[620px] relative flex items-center justify-center rounded-3xl overflow-visible bg-[#0b101d]/30 border border-[#1e2235]/60 backdrop-blur-sm shadow-2xl">
+        
+        <!-- Three.js Canvas -->
+        <canvas id="robot-webgl-canvas" class="w-full h-full absolute inset-0 rounded-3xl pointer-events-auto z-0"></canvas>
+        
+        <!-- Floating Live Status Badge (Top-Left) -->
+        <div class="absolute top-4 left-4 z-20 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#07080a]/85 border border-[#1e2235] backdrop-blur-md text-xs font-heading">
+          <span id="robot-status-dot" class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
+          <span id="robot-status-text" class="text-[#8b90a0] uppercase tracking-wider text-[10px] sm:text-xs">Sentinel Companion // Watching Over You</span>
+        </div>
+
+        <!-- 3D Screen-Projected Speech Cloud Callout (Anchored dynamically via Three.js vector.project) -->
+        <div id="speech-cloud-wrapper" class="absolute z-30 pointer-events-auto left-0 top-0 transition-transform duration-75 ease-out max-w-[340px] sm:max-w-[420px] w-[90%] sm:w-auto">
+          
+          <!-- Translucent Dark Glass Speech Bubble -->
+          <div id="speech-bubble" class="relative p-4 sm:p-5 rounded-2xl bg-[#0b101d]/90 border border-[#00f2fe]/60 backdrop-blur-xl shadow-2xl shadow-[#00f2fe]/10 transition-all duration-300">
+            
+            <!-- Speech Pointer Tail (Pointing toward robot head) -->
+            <div id="speech-tail" class="absolute -left-3 top-6 w-0 h-0 border-y-[8px] border-y-transparent border-r-[12px] border-r-[#00f2fe]/80 drop-shadow-[0_0_8px_rgba(0,242,254,0.5)]"></div>
+
+            <!-- Speech Header -->
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#1e2235]/60">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#10b981] animate-ping"></span>
+                <span class="text-[10px] uppercase font-heading tracking-widest text-[#00f2fe]" id="speech-header-title">SentinelAI Companion</span>
+              </div>
+              <span class="text-[9px] font-heading uppercase text-[#10b981] px-2 py-0.5 rounded bg-[#10b981]/15 border border-[#10b981]/30">Always Safe</span>
+            </div>
+
+            <!-- Dynamic Streaming Dialogue Text -->
+            <div id="speech-text" class="text-xs sm:text-sm font-light leading-relaxed text-gray-100 min-h-[40px] max-h-[140px] overflow-y-auto no-scrollbar">
+              Hi there! I'm <strong class="text-[#00f2fe]">SentinelAI</strong>. I keep your business data safe and sound while you focus on what you do best. Ask me anything or click a question below!
+            </div>
+
+            <!-- Embedded Input Line & Send Button -->
+            <form id="speech-form" class="mt-3.5 pt-2.5 border-t border-[#1e2235]/80 flex items-center gap-2">
+              <input 
+                type="text" 
+                id="speech-input" 
+                placeholder="Ask me anything in plain English..." 
+                autocomplete="off"
+                class="flex-1 bg-[#101625]/90 border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs px-3.5 py-2 rounded-xl placeholder-[#6b7280] transition-all"
+              >
+              <button 
+                type="submit" 
+                id="speech-send-btn" 
+                class="w-8 h-8 rounded-xl bg-[#10b981] hover:bg-[#059669] text-slate-950 font-semibold text-xs transition-all flex items-center justify-center flex-shrink-0 cursor-pointer shadow-lg shadow-[#10b981]/20 active:scale-95"
+              >
+                <i class="ph ph-paper-plane-tilt-bold text-sm"></i>
+              </button>
+            </form>
+
+          </div>
+
+          <!-- Quick-Prompt Chips Below Speech Bubble -->
+          <div id="quick-chips-container" class="mt-2.5 flex items-center gap-2 flex-wrap">
+            <button class="quick-chip text-[10px] sm:text-[11px] px-3 py-1.5 rounded-full bg-[#0b101d]/90 border border-[#1e2235] hover:border-[#10b981] hover:text-[#10b981] text-[#9ca3af] backdrop-blur-md transition-all duration-200 cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95" data-prompt="Is my business safe right now?">
+              <i class="ph ph-check-circle text-xs text-[#10b981]"></i>
+              <span>Is my business safe right now?</span>
+            </button>
+            <button class="quick-chip text-[10px] sm:text-[11px] px-3 py-1.5 rounded-full bg-[#0b101d]/90 border border-[#1e2235] hover:border-[#00f2fe] hover:text-[#00f2fe] text-[#9ca3af] backdrop-blur-md transition-all duration-200 cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95" data-prompt="How do you keep me protected?">
+              <i class="ph ph-shield-check text-xs text-[#00f2fe]"></i>
+              <span>How do you keep me protected?</span>
+            </button>
+            <button class="quick-chip text-[10px] sm:text-[11px] px-3 py-1.5 rounded-full bg-[#0b101d]/90 border border-[#1e2235] hover:border-[#f59e0b] hover:text-[#f59e0b] text-[#9ca3af] backdrop-blur-md transition-all duration-200 cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95" data-prompt="Do I need any tech skills?">
+              <i class="ph ph-user-check text-xs text-[#f59e0b]"></i>
+              <span>Do I need any tech skills?</span>
+            </button>
+            <button id="simulate-threat-btn" class="quick-chip text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-full bg-[#10b981]/20 border border-[#10b981]/50 text-[#10b981] hover:bg-[#10b981] hover:text-slate-950 font-semibold backdrop-blur-md transition-all duration-200 cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95">
+              <i class="ph ph-lightning-bold text-xs"></i>
+              <span>⚡ Test Threat Defense Live</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ─── Interactive Business Security Audit Scorecard ────────────────────── -->
+    <section id="security-audit" class="relative max-w-6xl mx-auto px-6 py-12 z-10">
+      <div class="glass-card p-8 sm:p-12 space-y-8 relative overflow-hidden">
+        <div class="w-80 h-80 bg-[#10b981]/10 rounded-full blur-3xl absolute -bottom-10 -left-10 pointer-events-none"></div>
+
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-[#1e2235] pb-8">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#10b981]/15 border border-[#10b981]/30 text-[#10b981] text-xs font-heading uppercase tracking-wider">
+              <i class="ph ph-gauge-bold text-sm"></i>
+              <span>30-Second Security Check</span>
+            </div>
+            <h2 class="font-heading text-2xl sm:text-4xl font-bold text-white">
+              Instant Business <span class="cred-glow-mint">SAFETY SCORECARD</span>
+            </h2>
+            <p class="text-[#8b90a0] text-xs sm:text-sm">Answer 3 quick questions to calculate your business protection readiness.</p>
+          </div>
+          
+          <!-- Live Computed Score Badge -->
+          <div class="p-6 rounded-2xl bg-[#0b101d] border border-[#10b981]/40 text-center min-w-[180px] shadow-xl">
+            <div class="text-[10px] font-heading uppercase tracking-wider text-[#8b90a0]">Your Protection Score</div>
+            <div id="audit-score-number" class="text-4xl font-heading font-bold text-[#10b981] my-1">98%</div>
+            <div id="audit-score-label" class="text-[11px] font-semibold text-[#10b981] flex items-center justify-center gap-1">
+              <i class="ph ph-shield-check-bold"></i>
+              <span>High Shielding</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Quick Audit Questions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-5 rounded-2xl bg-[#101625]/60 border border-[#1e2235] space-y-3">
+            <div class="text-xs font-bold text-white flex items-center justify-between">
+              <span>1. Mobile Email Access</span>
+              <i class="ph ph-device-mobile text-[#00f2fe]"></i>
+            </div>
+            <p class="text-[11px] text-[#8b90a0]">Do team members access work emails on mobile devices?</p>
+            <label class="flex items-center gap-2 text-xs text-white cursor-pointer pt-1">
+              <input type="checkbox" class="audit-check rounded accent-[#10b981]" checked data-points="25">
+              <span>Yes, protected by Sentinel Pro</span>
+            </label>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-[#101625]/60 border border-[#1e2235] space-y-3">
+            <div class="text-xs font-bold text-white flex items-center justify-between">
+              <span>2. Cloud Drives & Vaults</span>
+              <i class="ph ph-cloud text-[#f59e0b]"></i>
+            </div>
+            <p class="text-[11px] text-[#8b90a0]">Do you store invoices or files in Google Drive or OneDrive?</p>
+            <label class="flex items-center gap-2 text-xs text-white cursor-pointer pt-1">
+              <input type="checkbox" class="audit-check rounded accent-[#10b981]" checked data-points="25">
+              <span>Yes, protected by Sentinel Ultra</span>
+            </label>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-[#101625]/60 border border-[#1e2235] space-y-3">
+            <div class="text-xs font-bold text-white flex items-center justify-between">
+              <span>3. Workstation File Guard</span>
+              <i class="ph ph-desktop text-[#10b981]"></i>
+            </div>
+            <p class="text-[11px] text-[#8b90a0]">Are laptops and desktop PCs shielded against local malware?</p>
+            <label class="flex items-center gap-2 text-xs text-white cursor-pointer pt-1">
+              <input type="checkbox" class="audit-check rounded accent-[#10b981]" checked data-points="25">
+              <span>Yes, protected by Sentinel Flash</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Audit Action -->
+        <div class="pt-2 flex items-center justify-between flex-wrap gap-4 border-t border-[#1e2235] pt-6">
+          <span class="text-xs text-[#8b90a0]">SentinelAI automatically adjusts your protection model recommendation.</span>
+          <a href="#protection-options" class="btn-mint py-3 px-6 text-xs font-heading">
+            <i class="ph ph-sliders"></i>
+            <span>Activate Recommended AI Models</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Section 2: Simple Protection ───────────────────────────────── -->
+    <section id="section-2" class="relative min-h-screen flex items-center px-6 lg:px-16 py-28">
+      <div class="max-w-6xl mx-auto w-full space-y-16">
+        
+        <!-- Section Header -->
+        <div class="text-center space-y-4">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0b101d] border border-[#1e2235] text-[#10b981] text-xs font-heading uppercase tracking-widest">
+            Quiet Protection // Simple & Worry-Free
+          </div>
+          <h2 class="font-heading text-3xl sm:text-5xl font-bold">
+            Complete <span class="cred-glow">PEACE OF MIND</span> for your business.
+          </h2>
+          <p class="text-[#8b90a0] text-base max-w-xl mx-auto">
+            Built for busy business owners who just want things to work effortlessly.
+          </p>
+        </div>
+
+        <!-- 3 Glassmorphism Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          <!-- Card 1: 24/7 Quiet Shield -->
+          <div class="glass-card p-8 space-y-5 text-left">
+            <div class="w-14 h-14 rounded-2xl bg-[#00f2fe]/10 border border-[#00f2fe]/30 flex items-center justify-center text-[#00f2fe] text-2xl">
+              <i class="ph ph-shield"></i>
+            </div>
+            <h3 class="font-heading text-xl font-bold text-white">24/7 Quiet Shield</h3>
+            <p class="text-[#8b90a0] text-sm leading-relaxed">
+              Works silently in the background so you can focus on your day without any popups or distractions.
+            </p>
+            <div class="pt-2 text-xs font-bold text-[#00f2fe] uppercase tracking-wider flex items-center gap-2">
+              <span>Always Guarded</span>
+              <i class="ph ph-check-circle"></i>
+            </div>
+          </div>
+
+          <!-- Card 2: Automatic Safety -->
+          <div class="glass-card p-8 space-y-5 text-left">
+            <div class="w-14 h-14 rounded-2xl bg-[#f59e0b]/10 border border-[#f59e0b]/30 flex items-center justify-center text-[#f59e0b] text-2xl">
+              <i class="ph ph-sparkle"></i>
+            </div>
+            <h3 class="font-heading text-xl font-bold text-white">Automatic Safety</h3>
+            <p class="text-[#8b90a0] text-sm leading-relaxed">
+              Blocks unwanted intrusions instantly before they ever reach your computer or customer data.
+            </p>
+            <div class="pt-2 text-xs font-bold text-[#f59e0b] uppercase tracking-wider flex items-center gap-2">
+              <span>Zero Effort Required</span>
+              <i class="ph ph-heart text-base"></i>
+            </div>
+          </div>
+
+          <!-- Card 3: Green Light Clarity -->
+          <div class="glass-card p-8 space-y-5 text-left">
+            <div class="w-14 h-14 rounded-2xl bg-[#10b981]/10 border border-[#10b981]/30 flex items-center justify-center text-[#10b981] text-2xl">
+              <i class="ph ph-check-fat"></i>
+            </div>
+            <h3 class="font-heading text-xl font-bold text-white">Green Light Clarity</h3>
+            <p class="text-[#8b90a0] text-sm leading-relaxed">
+              A simple green light lets you know everything is safe. Green means good to go. That's it!
+            </p>
+            <div class="pt-2 text-xs font-bold text-[#10b981] uppercase tracking-wider flex items-center gap-2">
+              <span>Simple & Clear</span>
+              <i class="ph ph-shield-check text-base"></i>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── Interactive Protection Options Section (Homepage Module Selector) ──── -->
+    <section id="protection-options" class="relative max-w-6xl mx-auto px-6 py-20 z-10">
+      <div class="glass-card p-8 sm:p-12 space-y-12 text-center relative overflow-hidden">
+        <div class="w-96 h-96 bg-[#00f2fe]/10 rounded-full blur-3xl absolute -top-20 -right-20 pointer-events-none"></div>
+
+        <!-- Section Header -->
+        <div class="space-y-4 max-w-2xl mx-auto">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0b101d] border border-[#1e2235] text-[#00f2fe] text-xs font-heading uppercase tracking-widest">
+            <i class="ph ph-[#00f2fe] ph-cpu text-sm"></i>
+            <span>AI Security Models // Choose Your Model</span>
+          </div>
+          <h2 class="font-heading text-3xl sm:text-5xl font-bold">
+            Choose the <span class="cred-glow">SECURITY MODEL</span> your business needs.
+          </h2>
+          <p class="text-[#8b90a0] text-sm sm:text-base leading-relaxed">
+            Select the specialized AI protection models tailored for your business. Activate what you need, anytime.
+          </p>
+        </div>
+
+        <!-- 3 Interactive Model Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          
+          <!-- Model 1: Sentinel Flash Model (System Protection) -->
+          <div class="p-6 rounded-2xl bg-[#101625]/80 border border-[#1e2235] hover:border-[#10b981]/50 transition-all space-y-4 flex flex-col justify-between group">
+            <div class="space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#10b981]/15 border border-[#10b981]/30 flex items-center justify-center text-[#10b981] text-2xl group-hover:scale-110 transition-transform">
+                <i class="ph ph-desktop"></i>
+              </div>
+              <div>
+                <div class="text-[10px] font-heading font-semibold text-[#10b981] uppercase tracking-wider mb-0.5">Model 1.0 // Local Guard</div>
+                <h3 class="font-heading text-lg font-bold text-white">Sentinel Flash Model</h3>
+              </div>
+              <p class="text-[#8b90a0] text-xs leading-relaxed">
+                Lightweight, fast AI model guarding your laptops, desktop PCs, and local business files from malware and unauthorized access.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-[#1e2235]/60 flex items-center justify-between">
+              <span class="text-[11px] font-heading font-semibold text-[#10b981]">System Protection</span>
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-white">
+                <input type="checkbox" id="home-mod-system" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+                <span>Select Model</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Model 2: Sentinel Pro Model (Email Fraud Protection) -->
+          <div class="p-6 rounded-2xl bg-[#101625]/80 border border-[#1e2235] hover:border-[#00f2fe]/50 transition-all space-y-4 flex flex-col justify-between group">
+            <div class="space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#00f2fe]/15 border border-[#00f2fe]/30 flex items-center justify-center text-[#00f2fe] text-2xl group-hover:scale-110 transition-transform">
+                <i class="ph ph-envelope-simple"></i>
+              </div>
+              <div>
+                <div class="text-[10px] font-heading font-semibold text-[#00f2fe] uppercase tracking-wider mb-0.5">Model 2.0 // Neural Shield</div>
+                <h3 class="font-heading text-lg font-bold text-white">Sentinel Pro Model</h3>
+              </div>
+              <p class="text-[#8b90a0] text-xs leading-relaxed">
+                Advanced neural AI model filtering incoming emails 24/7 to block phishing scams, spoofing, and malicious attachments.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-[#1e2235]/60 flex items-center justify-between">
+              <span class="text-[11px] font-heading font-semibold text-[#00f2fe]">Email Fraud Protection</span>
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-white">
+                <input type="checkbox" id="home-mod-email" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+                <span>Select Model</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Model 3: Sentinel Ultra Model (Cloud Protection) -->
+          <div class="p-6 rounded-2xl bg-[#101625]/80 border border-[#1e2235] hover:border-[#f59e0b]/50 transition-all space-y-4 flex flex-col justify-between group">
+            <div class="space-y-3">
+              <div class="w-12 h-12 rounded-2xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 flex items-center justify-center text-[#f59e0b] text-2xl group-hover:scale-110 transition-transform">
+                <i class="ph ph-cloud-check"></i>
+              </div>
+              <div>
+                <div class="text-[10px] font-heading font-semibold text-[#f59e0b] uppercase tracking-wider mb-0.5">Model 3.0 // Vault AI</div>
+                <h3 class="font-heading text-lg font-bold text-white">Sentinel Ultra Model</h3>
+              </div>
+              <p class="text-[#8b90a0] text-xs leading-relaxed">
+                Enterprise-grade AI model securing Google Workspace, OneDrive, and cloud drives with automated daily backups.
+              </p>
+            </div>
+            <div class="pt-2 border-t border-[#1e2235]/60 flex items-center justify-between">
+              <span class="text-[11px] font-heading font-semibold text-[#f59e0b]">Cloud Protection</span>
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-white">
+                <input type="checkbox" id="home-mod-cloud" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+                <span>Select Model</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CTA Button for Selected Models -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button id="activate-selected-modules-btn" class="btn-mint py-4 px-10 text-xs font-heading cursor-pointer">
+            <i class="ph ph-cpu text-lg"></i>
+            <span>Activate Selected AI Models</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── Peace of Mind Section (Stats & Final CTA) ────────────────────── -->
+    <div id="fortress" class="relative bg-[#07080a] border-t border-[#1e2235] z-20 px-6 lg:px-16 py-28 space-y-28">
+      
+      <!-- Stats Strip -->
+      <section class="max-w-6xl mx-auto glass-card p-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div class="space-y-2">
+            <div class="text-3xl sm:text-4xl font-bold font-heading text-white">1,200+</div>
+            <div class="text-xs text-[#8b90a0] uppercase tracking-wider">Happy Business Owners</div>
+          </div>
+          <div class="space-y-2">
+            <div class="text-3xl sm:text-4xl font-bold font-heading text-[#10b981]">100%</div>
+            <div class="text-xs text-[#8b90a0] uppercase tracking-wider">Automatic Protection</div>
+          </div>
+          <div class="space-y-2">
+            <div class="text-3xl sm:text-4xl font-bold font-heading text-[#00f2fe]">0</div>
+            <div class="text-xs text-[#8b90a0] uppercase tracking-wider">Tech Skills Required</div>
+          </div>
+          <div class="space-y-2">
+            <div class="text-3xl sm:text-4xl font-bold font-heading text-[#10b981]">24/7</div>
+            <div class="text-xs text-[#8b90a0] uppercase tracking-wider">Worry-Free Security</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Final CTA Section -->
+      <section class="max-w-4xl mx-auto text-center space-y-8 glass-card p-16 relative overflow-hidden">
+        <div class="w-96 h-96 bg-[#10b981]/10 rounded-full blur-3xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+        <div class="relative z-10 space-y-6">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0b101d] border border-[#1e2235] text-[#10b981] text-xs font-heading uppercase tracking-widest">
+            Always Safe // Guaranteed Peace of Mind
+          </div>
+          <h2 class="font-heading text-4xl sm:text-5xl font-bold">
+            Experience Protection Built for <span class="cred-glow-mint">YOUR PEACE OF MIND</span>.
+          </h2>
+          <p class="text-[#8b90a0] text-lg max-w-lg mx-auto font-light">
+            Keep your business safe 24/7 with zero technical friction or hassle.
+          </p>
+          <div>
+            <a href="#hero" class="btn-mint text-base py-5 px-12">
+              <i class="ph ph-shield-check text-xl"></i>
+              <span>Protect My Business Today</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="max-w-7xl mx-auto pt-16 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-[#8b90a0]">
+        <div class="flex items-center gap-3">
+          <div class="w-6 h-6 rounded-full bg-[#00f2fe]/20 flex items-center justify-center text-[#00f2fe]">
+            <i class="ph ph-shield-check"></i>
+          </div>
+          <span class="font-heading font-bold text-white">SENTINELAI</span>
+          <span>© 2026 SentinelAI. All rights reserved.</span>
+        </div>
+        <div class="flex items-center gap-8">
+          <a href="admin.html" class="hover:text-[#00f2fe] text-[#00f2fe]/80 font-semibold transition-colors flex items-center gap-1.5"><i class="ph ph-database text-sm"></i> Admin Client Database</a>
+          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+          <a href="#" class="hover:text-white transition-colors">Simple Security Promise</a>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- ─── Interactive Glassmorphism Auth Modal (Login / Signup) ──────────── -->
+  <div id="auth-modal" class="fixed inset-0 bg-[#07080a]/80 backdrop-blur-xl flex items-center justify-center p-4 z-[100] hidden opacity-0 transition-opacity duration-300">
+    
+    <!-- Modal Card -->
+    <div id="auth-modal-card" class="bg-[#0b101d]/95 border border-[#1e2235] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative transition-transform duration-300 scale-95">
+      
+      <!-- Close Button -->
+      <button id="auth-modal-close" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-[#1e2235]/60 hover:bg-[#1e2235] text-[#8b90a0] hover:text-white flex items-center justify-center transition-all cursor-pointer">
+        <i class="ph ph-x text-base"></i>
+      </button>
+
+      <!-- Brand Logo Header -->
+      <div class="text-center space-y-2 mb-6">
+        <div class="inline-flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-[#00f2fe]/20 border border-[#00f2fe]/40 flex items-center justify-center text-[#00f2fe]">
+            <i class="ph ph-shield-check text-lg"></i>
+          </div>
+          <span class="font-heading font-bold text-lg text-white">SENTINEL<span class="text-[#00f2fe]">AI</span></span>
+        </div>
+        <p id="auth-modal-subtitle" class="text-xs text-[#8b90a0]">Welcome back! Log in to manage your silent security.</p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="grid grid-cols-2 p-1 bg-[#101625] border border-[#1e2235] rounded-2xl mb-6 text-xs font-semibold">
+        <button id="tab-login-btn" class="py-2.5 rounded-xl transition-all text-white bg-[#00f2fe]/15 border border-[#00f2fe]/40 shadow-sm cursor-pointer">Log In</button>
+        <button id="tab-signup-btn" class="py-2.5 rounded-xl transition-all text-[#8b90a0] hover:text-white cursor-pointer">Sign Up</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="form-login" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-1.5">Your Name</label>
+          <div class="relative flex items-center">
+            <i class="ph ph-user absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="text" id="login-name-input" placeholder="e.g. Alex Morgan" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-4 py-3 rounded-xl transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-1.5">Business Email</label>
+          <div class="relative flex items-center">
+            <i class="ph ph-envelope-simple absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="email" id="login-email-input" required placeholder="owner@yourbusiness.com" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-4 py-3 rounded-xl transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0]">Password</label>
+            <a href="#" class="text-[11px] text-[#00f2fe] hover:underline">Forgot?</a>
+          </div>
+          <div class="relative flex items-center">
+            <i class="ph ph-lock-key absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="password" id="login-password-input" required placeholder="••••••••••••" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-10 py-3 rounded-xl transition-colors">
+            <button type="button" class="toggle-password-btn absolute right-3.5 text-base text-[#6b7280] hover:text-white cursor-pointer" data-target="login-password-input">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-1">
+          <label class="flex items-center gap-2 cursor-pointer text-[#8b90a0] hover:text-white">
+            <input type="checkbox" checked class="rounded accent-[#10b981]">
+            <span>Keep me logged in</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-slate-950 font-heading font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-[#10b981]/25 flex items-center justify-center gap-2 mt-2">
+          <span>Log In to SentinelAI</span>
+          <i class="ph ph-arrow-right-bold text-sm"></i>
+        </button>
+      </form>
+
+      <!-- SIGNUP FORM (Hidden by default) -->
+      <form id="form-signup" class="space-y-4 hidden">
+        <div>
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-1.5">Full Name</label>
+          <div class="relative flex items-center">
+            <i class="ph ph-user absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="text" id="signup-name-input" required placeholder="Alex Morgan" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-4 py-3 rounded-xl transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-1.5">Work / Business Email</label>
+          <div class="relative flex items-center">
+            <i class="ph ph-envelope-simple absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="email" id="signup-email-input" required placeholder="alex@company.com" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-4 py-3 rounded-xl transition-colors">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-1.5">Create Password</label>
+          <div class="relative flex items-center">
+            <i class="ph ph-lock-key absolute left-3.5 text-base text-[#6b7280]"></i>
+            <input type="password" id="signup-password-input" required placeholder="At least 8 characters" class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-10 py-3 rounded-xl transition-colors">
+            <button type="button" class="toggle-password-btn absolute right-3.5 text-base text-[#6b7280] hover:text-white cursor-pointer" data-target="signup-password-input">
+              <i class="ph ph-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Security Model Selection -->
+        <div class="pt-1">
+          <label class="block text-[11px] font-heading uppercase tracking-wider text-[#8b90a0] mb-2">Choose Your AI Security Models</label>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#101625] border border-[#1e2235] hover:border-[#10b981]/50 cursor-pointer transition-colors">
+              <div class="flex items-center gap-2.5">
+                <i class="ph ph-desktop text-[#10b981] text-base"></i>
+                <div>
+                  <div class="font-semibold text-white">Sentinel Flash Model (System Guard)</div>
+                  <div class="text-[10px] text-[#8b90a0]">Local device & file protection AI</div>
+                </div>
+              </div>
+              <input type="checkbox" id="signup-mod-system" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#101625] border border-[#1e2235] hover:border-[#00f2fe]/50 cursor-pointer transition-colors">
+              <div class="flex items-center gap-2.5">
+                <i class="ph ph-envelope-simple text-[#00f2fe] text-base"></i>
+                <div>
+                  <div class="font-semibold text-white">Sentinel Pro Model (Email Fraud Guard)</div>
+                  <div class="text-[10px] text-[#8b90a0]">Phishing & scam filter AI</div>
+                </div>
+              </div>
+              <input type="checkbox" id="signup-mod-email" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+            </label>
+
+            <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#101625] border border-[#1e2235] hover:border-[#f59e0b]/50 cursor-pointer transition-colors">
+              <div class="flex items-center gap-2.5">
+                <i class="ph ph-cloud-check text-[#f59e0b] text-base"></i>
+                <div>
+                  <div class="font-semibold text-white">Sentinel Ultra Model (Cloud Guard)</div>
+                  <div class="text-[10px] text-[#8b90a0]">Drive & cloud workspace AI</div>
+                </div>
+              </div>
+              <input type="checkbox" id="signup-mod-cloud" checked class="rounded accent-[#10b981] w-4 h-4 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <div class="text-xs pt-1">
+          <label class="flex items-start gap-2 cursor-pointer text-[#8b90a0] hover:text-white">
+            <input type="checkbox" required checked class="mt-0.5 rounded accent-[#10b981]">
+            <span>I agree to the Simple Security Promise & Terms</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-[#10b981] hover:bg-[#059669] text-slate-950 font-heading font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-[#10b981]/25 flex items-center justify-center gap-2 mt-2">
+          <span>Create Free Account</span>
+          <i class="ph ph-shield-check-bold text-sm"></i>
+        </button>
+      </form>
+
+      <!-- Auth Notification Toast -->
+      <div id="auth-toast" class="mt-4 p-3 rounded-xl bg-[#10b981]/15 border border-[#10b981]/40 text-[#10b981] text-xs text-center hidden flex items-center justify-center gap-2">
+        <i class="ph ph-check-circle-bold text-base"></i>
+        <span id="auth-toast-msg">Success! Logging you in...</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Main JavaScript -->
+  <script src="main.js"></script>
+</body>
+</html>

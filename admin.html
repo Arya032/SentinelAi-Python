@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SentinelAI — Admin Client Management Portal</title>
+  <meta name="description" content="SentinelAI Admin Portal. View and manage registered business clients, active AI security model subscriptions, and system metrics.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidianBase: '#07080a',
+            indigoGlass: '#0b101d',
+            electricCyan: '#00f2fe',
+            emeraldMint: '#10b981',
+            amberGold: '#f59e0b',
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Space Grotesk"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#07080a] text-white selection:bg-[#10b981] selection:text-[#07080a] min-h-screen">
+
+  <!-- Admin Top Navigation -->
+  <header class="sticky top-0 z-50 px-6 lg:px-12 py-4 backdrop-blur-xl bg-[#07080a]/85 border-b border-[#1e2235]">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="index.html" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00f2fe]/20 to-[#10b981]/20 border border-[#00f2fe]/40 flex items-center justify-center group-hover:border-[#00f2fe] transition-all">
+          <i class="ph ph-shield-check text-[#00f2fe] text-lg group-hover:scale-110 transition-transform"></i>
+        </div>
+        <span class="font-heading font-bold text-lg tracking-wider text-white">
+          SENTINEL<span class="text-[#00f2fe]">AI</span>
+          <span class="text-xs font-semibold text-[#10b981] ml-2 px-2 py-0.5 rounded-md bg-[#10b981]/15 border border-[#10b981]/30">ADMIN PORTAL</span>
+        </span>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="flex items-center gap-4">
+        <a href="dashboard.html" class="text-xs font-heading font-semibold text-[#8b90a0] hover:text-white transition-colors">Owner Dashboard</a>
+        <a href="index.html" class="p-2 rounded-xl bg-[#101625] hover:bg-[#1e2235] text-[#8b90a0] hover:text-white transition-colors cursor-pointer" title="Home">
+          <i class="ph ph-house text-lg"></i>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Admin Content Container -->
+  <main class="max-w-7xl mx-auto px-6 lg:px-12 py-10 space-y-10">
+
+    <!-- Header Banner -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[#1e2235] pb-6">
+      <div>
+        <h1 class="font-heading text-3xl font-bold text-white flex items-center gap-3">
+          <span>Client Database Management</span>
+          <i class="ph ph-database text-[#00f2fe]"></i>
+        </h1>
+        <p class="text-xs sm:text-sm text-[#8b90a0] mt-1">Monitor registered business clients, user credentials, and active AI protection model subscriptions.</p>
+      </div>
+
+      <!-- Export Actions -->
+      <div class="flex items-center gap-3">
+        <button id="export-json-btn" class="px-4 py-2.5 rounded-xl bg-[#101625] hover:bg-[#1e2235] text-white border border-[#1e2235] text-xs font-heading font-semibold transition-all cursor-pointer flex items-center gap-2">
+          <i class="ph ph-download-simple text-sm text-[#00f2fe]"></i>
+          <span>Export Database (JSON)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 Key Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="glass-card p-6 space-y-2">
+        <div class="flex items-center justify-between text-xs text-[#8b90a0]">
+          <span>Total Clients</span>
+          <i class="ph ph-users text-lg text-[#00f2fe]"></i>
+        </div>
+        <div id="stat-total-clients" class="text-3xl font-heading font-bold text-white">0</div>
+        <div class="text-[10px] text-[#10b981] font-semibold">Live in users_database.json</div>
+      </div>
+
+      <div class="glass-card p-6 space-y-2">
+        <div class="flex items-center justify-between text-xs text-[#8b90a0]">
+          <span>System Guard (Flash)</span>
+          <i class="ph ph-desktop text-lg text-[#10b981]"></i>
+        </div>
+        <div id="stat-sys-clients" class="text-3xl font-heading font-bold text-[#10b981]">0</div>
+        <div class="text-[10px] text-[#8b90a0]">Local workstation protection</div>
+      </div>
+
+      <div class="glass-card p-6 space-y-2">
+        <div class="flex items-center justify-between text-xs text-[#8b90a0]">
+          <span>Email Shield (Pro)</span>
+          <i class="ph ph-envelope-simple text-lg text-[#00f2fe]"></i>
+        </div>
+        <div id="stat-email-clients" class="text-3xl font-heading font-bold text-[#00f2fe]">0</div>
+        <div class="text-[10px] text-[#8b90a0]">Phishing & scam filter</div>
+      </div>
+
+      <div class="glass-card p-6 space-y-2">
+        <div class="flex items-center justify-between text-xs text-[#8b90a0]">
+          <span>Cloud Vault (Ultra)</span>
+          <i class="ph ph-cloud-check text-lg text-[#f59e0b]"></i>
+        </div>
+        <div id="stat-cloud-clients" class="text-3xl font-heading font-bold text-[#f59e0b]">0</div>
+        <div class="text-[10px] text-[#8b90a0]">Cloud workspace backup</div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="glass-card p-6 space-y-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="relative w-full sm:w-80">
+          <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6b7280]"></i>
+          <input type="text" id="admin-search-input" placeholder="Search clients by name or email..." class="w-full bg-[#101625] border border-[#1e2235] focus:border-[#00f2fe] focus:outline-none text-white text-xs pl-10 pr-4 py-2.5 rounded-xl transition-colors">
+        </div>
+
+        <div class="text-xs text-[#8b90a0] font-heading">
+          Showing <span id="client-count-display" class="text-white font-bold">0</span> Client Records
+        </div>
+      </div>
+
+      <!-- Client Records Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-[#1e2235] text-[#8b90a0] font-heading uppercase text-[10px] tracking-wider">
+              <th class="py-3 px-4">Client</th>
+              <th class="py-3 px-4">Email</th>
+              <th class="py-3 px-4">Active AI Models</th>
+              <th class="py-3 px-4">Registered Date</th>
+              <th class="py-3 px-4 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-client-table-body" class="divide-y divide-[#1e2235]/60">
+            <!-- Dynamic Client Rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let allClients = [];
+
+    async function loadAdminClients() {
+      try {
+        const res = await fetch('/api/admin/clients');
+        const data = await res.json();
+        if (data.success && data.clients) {
+          allClients = data.clients;
+          renderClients(allClients);
+        } else {
+          loadFallbackClients();
+        }
+      } catch (err) {
+        loadFallbackClients();
+      }
+    }
+
+    function loadFallbackClients() {
+      const saved = localStorage.getItem('sentinel_user');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          allClients = [{
+            id: 'usr_local_1',
+            name: user.name || 'Business Owner',
+            email: user.email || 'owner@company.com',
+            initials: user.initials || 'BO',
+            modules: user.modules || { system: true, email: true, cloud: true },
+            createdAt: new Date().toISOString()
+          }];
+        } catch(e) {
+          allClients = [];
+        }
+      }
+      renderClients(allClients);
+    }
+
+    function renderClients(clients) {
+      const tbody = document.getElementById('admin-client-table-body');
+      const countDisplay = document.getElementById('client-count-display');
+      const statTotal = document.getElementById('stat-total-clients');
+      const statSys = document.getElementById('stat-sys-clients');
+      const statEmail = document.getElementById('stat-email-clients');
+      const statCloud = document.getElementById('stat-cloud-clients');
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (countDisplay) countDisplay.innerText = clients.length;
+      if (statTotal) statTotal.innerText = clients.length;
+
+      let sysCount = 0, emailCount = 0, cloudCount = 0;
+
+      if (clients.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-8 text-center text-[#8b90a0]">
+              No clients registered in database yet. Sign up an account on the homepage to populate records!
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      clients.forEach(c => {
+        const mods = c.modules || { system: true, email: true, cloud: true };
+        if (mods.system) sysCount++;
+        if (mods.email) emailCount++;
+        if (mods.cloud) cloudCount++;
+
+        const regDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Active';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#101625]/40 transition-colors';
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#00f2fe]/20 border border-[#00f2fe]/40 flex items-center justify-center text-[#00f2fe] font-bold text-xs">
+              ${c.initials || 'BO'}
+            </div>
+            <span class="font-semibold text-white">${c.name || 'Client User'}</span>
+          </td>
+          <td class="py-3.5 px-4 text-[#8b90a0]">${c.email || 'N/A'}</td>
+          <td class="py-3.5 px-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${mods.system ? '<span class="px-2 py-0.5 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 text-[10px]">Flash</span>' : ''}
+              ${mods.email ? '<span class="px-2 py-0.5 rounded-full bg-[#00f2fe]/15 text-[#00f2fe] border border-[#00f2fe]/30 text-[10px]">Pro</span>' : ''}
+              ${mods.cloud ? '<span class="px-2 py-0.5 rounded-full bg-[#f59e0b]/15 text-[#f59e0b] border border-[#f59e0b]/30 text-[10px]">Ultra</span>' : ''}
+            </div>
+          </td>
+          <td class="py-3.5 px-4 text-[#8b90a0]">${regDate}</td>
+          <td class="py-3.5 px-4 text-right">
+            <span class="px-2.5 py-1 rounded-full bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30 font-semibold text-[10px]">Protected</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (statSys) statSys.innerText = sysCount;
+      if (statEmail) statEmail.innerText = emailCount;
+      if (statCloud) statCloud.innerText = cloudCount;
+    }
+
+    // Search Filtering
+    document.getElementById('admin-search-input')?.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = allClients.filter(c => 
+        (c.name && c.name.toLowerCase().includes(q)) || 
+        (c.email && c.email.toLowerCase().includes(q))
+      );
+      renderClients(filtered);
+    });
+
+    // Export JSON
+    document.getElementById('export-json-btn')?.addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allClients, null, 2));
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", "sentinel_clients_database.json");
+      document.body.appendChild(dlAnchorElem);
+      dlAnchorElem.click();
+      dlAnchorElem.remove();
+    });
+
+    loadAdminClients();
+  </script>
+</body>
+</html>
