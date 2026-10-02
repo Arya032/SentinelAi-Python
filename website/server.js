@@ -98,7 +98,7 @@ const server = http.createServer(async (req, res) => {
 
   // Download Agent Executable Route
   if (pathname === '/download-agent') {
-    const exePath = path.join(__dirname, 'dist', 'AryaShield_Agent.exe');
+    const exePath = path.join(__dirname, '..', 'dist', 'AryaShield_Agent.exe');
     if (fs.existsSync(exePath)) {
       res.writeHead(200, {
         'Content-Type': 'application/x-msdownload',
