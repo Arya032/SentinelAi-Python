@@ -1,8 +1,14 @@
+import os
+import json
 import requests
 import platform
 import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
 
 FIREBASE_DB_URL = "https://studio-167261963-da656-default-rtdb.firebaseio.com"
 
@@ -28,11 +34,12 @@ def push_threat_to_cloud(threat_type, details, target_filepath=""):
         requests.post("http://127.0.0.1:5000/api/threats", json=payload, timeout=1)
     except Exception:
         pass
+
 app = Flask(__name__)
 CORS(app) 
 
-DB_FILE = "cloud_threat_logs.json"
-STATUS_FILE = "system_status.json"
+DB_FILE = os.path.join(DATA_DIR, "cloud_threat_logs.json")
+STATUS_FILE = os.path.join(DATA_DIR, "system_status.json")
 
 if not os.path.exists(DB_FILE):
     with open(DB_FILE, "w") as f:

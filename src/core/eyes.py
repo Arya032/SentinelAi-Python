@@ -21,7 +21,12 @@ def get_resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.dirname(os.path.abspath(__file__))
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        base_path = os.path.abspath(os.path.join(current_dir, "..", ".."))
+    
+    config_candidate = os.path.join(base_path, "config", relative_path)
+    if os.path.exists(config_candidate):
+        return config_candidate
     return os.path.join(base_path, relative_path)
 
 # 1. API Capability Clusters for Static Intent
@@ -714,11 +719,16 @@ def ai_malware_brain_scanner_watchdog():
     """
     print("[ACTIVE] 🧠 AI Zero-Day Malware & Virus Scanner Running...")
 
-    # Update model loading to use get_resource_path:
-model_file = get_resource_path("brain_model.pkl")
-if os.path.exists(model_file):
-    with open(model_file, "rb") as f:
-        brain_model = pickle.load(f)
+    model_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ml", "models", "brain_model.pkl")
+    if not os.path.exists(model_file):
+        model_file = get_resource_path("brain_model.pkl")
+    
+    brain_model = None
+    if os.path.exists(model_file):
+        try:
+            brain_model = joblib.load(model_file)
+        except Exception:
+            pass
 
     user_home = Path.home()
     watch_dirs = [
