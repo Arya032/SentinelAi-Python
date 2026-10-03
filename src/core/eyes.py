@@ -64,104 +64,7 @@ def analyze_pe_structural_intent(filepath):
         pe.close()
         return len(intent_flags) >= 2, ", ".join(intent_flags)
     except Exception:
-        return False, ""
-
-# 2. Dynamic Process-Lineage Watchdog
-def intent_behavioral_watchdog():
-    TARGET_SHELLS = {"powershell.exe", "cmd.exe", "wscript.exe", "cscript.exe", "mshta.exe", "vssadmin.exe"}
-
-    seen_pids = set()
-    
-    while True:
-        try:
-            # Query only lightweight attributes first
-            for proc in psutil.process_iter(['pid', 'name', 'ppid']):
-                pid = proc.info['pid']
-                if pid in seen_pids:
-                    continue
-                seen_pids.add(pid)
-                
-                proc_name = (proc.info.get('name') or '').lower()
-                
-                # ONLY fetch expensive cmdline if target is a known shell/LOLBin
-                if proc_name in TARGET_SHELLS:
-                    try:
-                        cmdline = " ".join(proc.cmdline()).lower()
-                        
-                        # Inspect parent process lineage
-                        ppid = proc.info.get('ppid')
-                        if ppid:
-                            parent = psutil.Process(ppid)
-                            parent_name = parent.name().lower()
-                            if parent_name in {"winword.exe", "excel.exe", "chrome.exe", "msedge.exe"}:
-                                kill_and_delete_threat(proc, "Exploit Intent", f"Spawned by {parent_name}")
-                                continue
-                                
-                        if "vssadmin" in cmdline and "delete" in cmdline:
-                            kill_and_delete_threat(proc, "Ransomware Intent", cmdline)
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                        pass
-
-            if len(seen_pids) > 10000:
-                seen_pids.clear()
-
-            # Increase sleep from 1.0s to 2.0s to drop CPU to near 0%
-            time.sleep(2.0)
-        except Exception:
-            time.sleep(2.0)
-# 3. Static Binary Scanner Watchdog
-def ai_malware_brain_scanner_watchdog():
-    """Scans binary intent using feature heuristics and ML inference."""
-    print("[ACTIVE] 🧠 Deep Binary Intent Scanner Running...")
-    watch_dirs = [str(Path.home() / "Downloads"), str(Path.home() / "Desktop"), os.getcwd()]
-    file_cache = {}
-
-    while True:
-        try:
-            for folder in watch_dirs:
-                if not os.path.exists(folder):
-                    continue
-                for filename in os.listdir(folder):
-                    filepath = os.path.join(folder, filename)
-                    if not os.path.isfile(filepath):
-                        continue
-
-                    lower_name = filename.lower()
-                    # Whitelist benign temp/cache files
-                    if lower_name.endswith(('.tmp', '.log', '.ini', '.lock', '.etl', '.diaglog', '.dat', '.json', '.xml')):
-                        continue
-
-                    # Target executables and scripts only
-                    if not lower_name.endswith(('.exe', '.dll', '.bin', '.scr', '.vbs', '.bat', '.cmd', '.ps1')):
-                        continue
-
-                    try:
-                        mtime = os.path.getmtime(filepath)
-                        if file_cache.get(filepath) == mtime:
-                            continue
-                        file_cache[filepath] = mtime
-                    except Exception:
-                        continue
-
-                    # Evaluate static binary capability intent
-                    is_malicious_intent, matched_clusters = analyze_pe_structural_intent(filepath)
-                    if is_malicious_intent:
-                        kill_and_delete_threat(
-                            proc=None,
-                            threat_type="Static Intent: Dangerous Capability Co-occurrence",
-                            details=f"Binary '{filename}' exhibits intent: {matched_clusters}",
-                            target_filepath=filepath
-                        )
-            time.sleep(4)
-        except Exception:
-            time.sleep(4)
-
-if sys.platform == 'win32':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-    except Exception:
-        pass
+        return False, " "
 
 # Safe optional third-party library imports
 try:
@@ -794,14 +697,14 @@ def ai_malware_brain_scanner_watchdog():
 
                         is_malicious = False
 
-                        if model:
-                            try:
-                                features = [[file_size_kb, entropy, is_disguised, path_risk]]
-                                pred = model.predict(features)
-                                if pred[0] == 1:
-                                    is_malicious = True
-                            except Exception:
-                                pass
+                        if brain_model is not None:
+                           try:
+                             features = [[file_size_kb, entropy, is_disguised, path_risk]]
+                             pred = brain_model.predict(features)
+                        if pred[0] == 1:
+                             is_malicious = True
+                        except Exception:
+                        pass
 
                         if not is_malicious and entropy > 0.95 and lower_name.endswith(('.bin', '.exe', '.dat', '.scr', '.vbs', '.bat', '.cmd')):
                             if 'stealth_payload' in lower_name or 'payload' in lower_name or 'virus' in lower_name or 'zero' in lower_name or file_size_kb > 1000:
@@ -837,19 +740,6 @@ def ai_malware_brain_scanner_watchdog():
 # ---------------------------------------------------------
 # 4. INITIALIZATION & SYSTEM TRAY
 # ---------------------------------------------------------
-def start_ai_engine(icon_ref=None):
-    global ai_status, ref
-    print("[INIT] Starting AryaShield Intent-Based EDR Engine...")
-
-    if not is_admin():
-        print("[WARNING] Running in User Mode. Admin privileges recommended for full kernel protection.")
-        ai_status = "Protected (User Mode)"
-    else:
-        print("[SHIELD] Elevated privileges active. System protection enabled.")
-        ai_status = "Protected (Admin Mode)"
-        enable_auto_start()
-        import requests
-
 FIREBASE_DB_URL = "https://studio-167261963-da656-default-rtdb.firebaseio.com"
 
 def push_threat_to_cloud(threat_type, details, target_filepath=""):
@@ -863,32 +753,30 @@ def push_threat_to_cloud(threat_type, details, target_filepath=""):
         "status": "Blocked"
     }
     try:
-        requests.post(f"{FIREBASE_DB_URL}/threats.json", json=payload, timeout=4)
+        requests.post(f"{FIREBASE_DB_URL}/threats.json", json=payload, timeout=2)
     except Exception:
         pass
 
-    key_path = resource_path("firebase_key.json")
-    if firebase_admin and os.path.exists(key_path):
-        try:
-            cred = credentials.Certificate(key_path)
-            firebase_admin.initialize_app(cred, {
-                'databaseURL': 'https://studio-167261963-da656-default-rtdb.firebaseio.com/'
-            })
-            ref = db.reference('alerts')
-            print("[CLOUD] Connected to Firebase Realtime Telemetry.")
-        except Exception as e:
-            print(f"[CLOUD NOTE] Firebase setup skipped: {e}")
+def start_ai_engine():
+    global ai_status
+    print("[INIT] Initializing AryaShield Intent-Based EDR Engine...")
 
-    # Launch Performance & Safety Monitor Thread
+    if not is_admin():
+        print("[WARNING] Running in User Mode. Admin privileges recommended.")
+        ai_status = "Protected (User Mode)"
+    else:
+        print("[SHIELD] Elevated privileges active. System protection enabled.")
+        ai_status = "Protected (Admin Mode)"
+        enable_auto_start()
+
+    # Launch all 5 watchdog background threads
     threading.Thread(target=system_health_monitor, daemon=True).start()
-
-    # Launch Intent Watchdog Threads
     threading.Thread(target=intent_behavioral_watchdog, daemon=True).start()
     threading.Thread(target=network_intent_watchdog, daemon=True).start()
     threading.Thread(target=double_extension_disguise_watchdog, daemon=True).start()
     threading.Thread(target=ai_malware_brain_scanner_watchdog, daemon=True).start()
-    
-    print("[SUCCESS] All Performance & Security Modules Active. User documents safe.")
+
+    print("[SUCCESS] All Security & Performance Threads Active.")
 
 def create_shield_icon():
     width, height = 64, 64
