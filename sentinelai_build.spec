@@ -19,14 +19,12 @@ for cfg in [os.path.join(BASE, 'config')]:
 hiddenimports = [
     'pefile', 'psutil', 'joblib', 'requests', 'plyer',
     'plyer.platforms.win.notification',
-    'pystray', '_pystray_backend_win32',
+    'pystray',
     'PIL', 'PIL.Image', 'PIL.ImageDraw',
     'sklearn', 'sklearn.ensemble', 'sklearn.tree',
-    'sklearn.preprocessing', 'sklearn.utils._cython_blas',
-    'sklearn.neighbors._typedefs',
-    'flask', 'flask_cors',
-    'win32api', 'win32con', 'win32security', 'winerror',
-    'ctypes', 'ctypes.wintypes', 'ctypes.windll',
+    'sklearn.preprocessing',
+    'win32api', 'win32con', 'win32security',
+    'ctypes', 'ctypes.wintypes',
     'hashlib', 'winreg', 'threading', 'subprocess',
 ]
 
