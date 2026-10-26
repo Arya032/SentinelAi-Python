@@ -58,3 +58,13 @@ yarn-error.log*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# === NEVER COMMIT SECRETS ===
+firebase_key.json
+firebase*.json
+*_key.json
+*.key.json
+config/firebase*
+.env
+*.env
+service_account*.json
