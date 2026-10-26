@@ -1,5 +1,7 @@
 import sys
 import os
+import re
+import json
 import ctypes
 import subprocess
 import time
@@ -796,30 +798,41 @@ def push_threat_to_cloud(threat_type, details, target_filepath=""):
         pass
 
 def push_health_to_cloud():
-    """Background thread: pushes live PC health every 30 s so dashboard is always up-to-date."""
+    """Background thread: pushes live PC health every 30s and checks for remote stop commands."""
     while True:
         try:
             disk_pct = 0
             try:
-                import psutil as _ps
-                disk_pct = _ps.disk_usage('/').percent
+                disk_pct = psutil.disk_usage('/').percent
             except Exception:
                 pass
 
             health = {
                 "device_name":    DEVICE_NAME,
-                "cpu":            latest_metrics.get('cpu_percent', 0),
-                "ram":            latest_metrics.get('ram_percent', 0),
-                "disk":           disk_pct,
+                "cpu":            round(latest_metrics.get('cpu_percent', 0), 1),
+                "ram":            round(latest_metrics.get('ram_percent', 0), 1),
+                "disk":           round(disk_pct, 1),
                 "security_score": latest_metrics.get('safety_score', 100),
                 "health_status":  latest_metrics.get('health_status', 'SECURED (OPTIMAL)'),
                 "threats_count":  threats_counter,
                 "is_online":      True,
                 "last_seen":      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
-            # PUT (not POST) so this overwrites instead of appending
-            url = f"{FIREBASE_DB_URL}/users/{USER_ID}/devices/{DEVICE_NAME}/health.json"
-            requests.put(url, json=health, timeout=3)
+            health_url = f"{FIREBASE_DB_URL}/users/{USER_ID}/devices/{DEVICE_NAME}/health.json"
+            requests.put(health_url, json=health, timeout=3)
+
+            # ── Check for remote stop command sent from the dashboard ──────────
+            try:
+                stop_url = f"{FIREBASE_DB_URL}/users/{USER_ID}/devices/{DEVICE_NAME}/commands/stop.json"
+                r = requests.get(stop_url, timeout=2)
+                if r.ok and r.json() is True:
+                    print("[REMOTE STOP] Dashboard requested agent shutdown. Stopping...")
+                    requests.put(stop_url, json=False, timeout=2)          # clear command
+                    requests.put(health_url, json={**health, "is_online": False}, timeout=2)
+                    os._exit(0)
+            except Exception:
+                pass
+
         except Exception:
             pass
         time.sleep(30)
@@ -879,31 +892,98 @@ def print_performance_snapshot():
     print(" 👤 Privilege Level:    Administrator")
     print("------------------------------------------------\n")
     
+def _first_run_setup():
+    """If no config.json found, prompt user for their CYENEX.AI email (first launch only)."""
+    global _USER_CFG, USER_ID, DEVICE_NAME
+
+    # Already configured?
+    if USER_ID != 'default_user' and DEVICE_NAME:
+        return
+
+    exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else \
+              os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+    config_path = os.path.join(exe_dir, 'config.json')
+    if os.path.exists(config_path):
+        return  # Already set up
+
+    print()
+    print("  " + "="*52)
+    print("   SENTINELAI — FIRST TIME SETUP")
+    print("  " + "="*52)
+    print()
+    print("  Enter your CYENEX.AI account email to link this")
+    print("  PC to your personal dashboard.")
+    print()
+    try:
+        email = input("  Your CYENEX.AI email: ").strip()
+    except Exception:
+        email = ''
+    if not email or '@' not in email:
+        email = f"{platform.node().lower()}@sentinelai.local"
+
+    uid   = re.sub(r'[^a-z0-9]', '_', email.lower())
+    dname = platform.node()
+    cfg   = {"user_email": email, "user_id": uid, "device_name": dname,
+             "setup_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+    try:
+        with open(config_path, 'w') as f:
+            json.dump(cfg, f, indent=2)
+    except Exception:
+        pass
+
+    _USER_CFG   = cfg
+    USER_ID     = uid
+    DEVICE_NAME = dname
+
+    print()
+    print(f"  Account  : {email}")
+    print(f"  Device   : {dname}")
+    print(f"  Dashboard: https://arya032.github.io/SentinelAi-Website/dashboard.html")
+    print()
+    print("  " + "="*52)
+    print()
+
+
 def main():
+    _first_run_setup()   # Prompt for email on very first launch
+
     print("------------------------------------------------")
-    print("   ARYA'S AI AGENT: INTENT-BASED EDR ENGINE     ")
+    print("   SENTINELAI — ENTERPRISE CYBER DEFENSE")
     print("------------------------------------------------")
-    
+    print(f"[CLOUD] Account : {_USER_CFG.get('user_email', 'Not configured')}")
+    print(f"[CLOUD] Device  : {DEVICE_NAME}")
+    print(f"[CLOUD] Dashboard → https://arya032.github.io/SentinelAi-Website/dashboard.html")
+    print("------------------------------------------------")
+
     start_ai_engine()
-    
-    # Wait 2 seconds for initial metrics to populate and print snapshot
+
     time.sleep(2)
     print_performance_snapshot()
+
+    DASHBOARD_URL = "https://arya032.github.io/SentinelAi-Website/dashboard.html"
 
     if pystray:
         menu = pystray.Menu(
             pystray.MenuItem(lambda text: ai_status, None, enabled=False),
             pystray.MenuItem("Show Health Snapshot 📊", print_performance_snapshot),
-            pystray.MenuItem("Open Dashboard", lambda: subprocess.Popen("start http://127.0.0.1:5000", shell=True)),
-            pystray.MenuItem("Exit", lambda icon: (icon.stop(), sys.exit(0)))
+            pystray.MenuItem("Open Dashboard 🌐",
+                             lambda icon, item: subprocess.Popen(f"start {DASHBOARD_URL}", shell=True)),
+            pystray.MenuItem("Exit / Stop Agent",
+                             lambda icon, item: (icon.stop(), os._exit(0)))
         )
-        print("[UI] System Tray Icon Launched with Live Hardware Status.")
-        icon = pystray.Icon("AryaShield", create_shield_icon(), "AryaShield AI", menu)
+        print("[UI] System Tray Icon active. Right-click the shield icon in your taskbar.")
+        icon = pystray.Icon("SentinelAI", create_shield_icon(), "SentinelAI — Protecting", menu)
         icon.run()
     else:
-        print("[SYSTEM] Running in headless mode (pystray unavailable). Press Ctrl+C to exit.")
-        while True:
-            time.sleep(10)
+        print("[SYSTEM] Running in headless mode. Press Ctrl+C to exit.")
+        try:
+            while True:
+                time.sleep(10)
+        except KeyboardInterrupt:
+            pass
+
 
 if __name__ == "__main__":
     main()
