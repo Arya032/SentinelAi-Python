@@ -1,0 +1,111 @@
+# =============================================================================
+#  SENTINELAI — GITHUB ACTIONS CI/CD PIPELINE
+#
+#  What this does automatically on every push to main:
+#    1. Builds SentinelAI.exe with PyInstaller
+#    2. Compiles SentinelAI-Setup.exe with Inno Setup
+#    3. Creates a GitHub Release
+#    4. Uploads SentinelAI-Setup.exe to the Release
+#
+#  Result: Anyone can download from:
+#    https://github.com/Arya032/SentinelAi-Python/releases/latest
+#    (or your website's download button pointing here)
+# =============================================================================
+
+name: Build & Release SentinelAI Installer
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'          # also triggers on version tags like v1.0.0
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+permissions:
+  contents: write   # needed to create GitHub Releases
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+    
+    steps:
+      # ── 1. Get the code ────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ───────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: 'x64'
+
+      # ── 3. Install all Python dependencies ────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller psutil pefile requests plyer pystray pillow \
+                      joblib scikit-learn pywin32
+
+      # ── 4. Build SentinelAI.exe with PyInstaller ──────────────────────────
+      - name: Build standalone exe (PyInstaller)
+        run: |
+          python -m PyInstaller sentinelai_build.spec --clean --noconfirm
+        working-directory: ${{ github.workspace }}
+
+      # ── 5. Install Inno Setup ─────────────────────────────────────────────
+      - name: Install Inno Setup 6
+        run: |
+          choco install innosetup --version=6.3.3 -y --no-progress
+        shell: powershell
+
+      # ── 6. Build SentinelAI-Setup.exe with Inno Setup ────────────────────
+      - name: Build installer (Inno Setup)
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist\installer"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+
+      # ── 7. Get version for release name ───────────────────────────────────
+      - name: Get version
+        id: get_version
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/*') {
+            $version = $env:GITHUB_REF -replace 'refs/tags/', ''
+          } else {
+            $version = "v1.0.0-build-$(Get-Date -Format 'yyyyMMdd-HHmm')"
+          }
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Release version: $version"
+        shell: powershell
+
+      # ── 8. Create GitHub Release and upload installer ─────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: "SentinelAI ${{ steps.get_version.outputs.VERSION }}"
+          body: |
+            ## SentinelAI — Enterprise Cyber Defense
+            
+            **Download and double-click to install.** 
+            One UAC prompt, then it runs silently in the background forever.
+            
+            ### What's included
+            - ✅ 13 behavioral detection modules
+            - ✅ Ransomware, zero-day, process injection, LOLBAS detection
+            - ✅ Runs at every boot (Windows Service, no login needed)
+            - ✅ Automatic restart on failure
+            - ✅ No Python required on target PC
+            
+            ### System Requirements
+            - Windows 10/11 (64-bit)
+            - 4GB RAM recommended
+            
+          files: |
+            dist/installer/SentinelAI-Setup.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
