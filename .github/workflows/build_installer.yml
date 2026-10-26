@@ -1,110 +1,104 @@
-# =============================================================================
-#  SENTINELAI — GITHUB ACTIONS CI/CD PIPELINE
-#
-#  What this does automatically on every push to main:
-#    1. Builds SentinelAI.exe with PyInstaller
-#    2. Compiles SentinelAI-Setup.exe with Inno Setup
-#    3. Creates a GitHub Release
-#    4. Uploads SentinelAI-Setup.exe to the Release
-#
-#  Result: Anyone can download from:
-#    https://github.com/Arya032/SentinelAi-Python/releases/latest
-#    (or your website's download button pointing here)
-# =============================================================================
-
-name: Build & Release SentinelAI Installer
+name: Build & Release SentinelAI
 
 on:
   push:
     branches: [ main, master ]
-    tags:
-      - 'v*'          # also triggers on version tags like v1.0.0
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
-  contents: write   # needed to create GitHub Releases
+  contents: write
 
 jobs:
   build-installer:
     runs-on: windows-latest
-    
+
     steps:
-      # ── 1. Get the code ────────────────────────────────────────────────────
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # ── 2. Set up Python ───────────────────────────────────────────────────
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          architecture: 'x64'
 
-      # ── 3. Install all Python dependencies ────────────────────────────────
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install pyinstaller psutil pefile requests plyer pystray pillow \
-                      joblib scikit-learn pywin32
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install psutil pefile requests plyer pillow pywin32
+          pip install pystray
+          pip install joblib scikit-learn
+        shell: cmd
 
-      # ── 4. Build SentinelAI.exe with PyInstaller ──────────────────────────
-      - name: Build standalone exe (PyInstaller)
+      - name: Build exe with PyInstaller
+        run: python -m PyInstaller sentinelai_build.spec --clean --noconfirm
+        shell: cmd
+
+      - name: Build self-extracting installer (PowerShell, no Inno Setup needed)
+        shell: pwsh
         run: |
-          python -m PyInstaller sentinelai_build.spec --clean --noconfirm
-        working-directory: ${{ github.workspace }}
+          New-Item -ItemType Directory -Force -Path "dist\installer" | Out-Null
 
-      # ── 5. Install Inno Setup ─────────────────────────────────────────────
-      - name: Install Inno Setup 6
+          # Bundle the dist folder + service + install scripts into a zip
+          $zipPath = "dist\installer\SentinelAI-Files.zip"
+          Compress-Archive -Path "dist\SentinelAI\*", "sentinelai_service.py", "install.bat", "uninstall.bat" -DestinationPath $zipPath -Force
+
+          # Create a self-extracting PowerShell installer (SentinelAI-Setup.ps1)
+          # Users: right-click -> Run with PowerShell
+          $sfx = @'
+          # SentinelAI Self-Extracting Installer
+          # Right-click this file and choose "Run with PowerShell"
+          $ErrorActionPreference = "Stop"
+          Write-Host "Installing SentinelAI..." -ForegroundColor Cyan
+          $dest = "$env:ProgramFiles\SentinelAI"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          $zip = "$PSScriptRoot\SentinelAI-Files.zip"
+          Expand-Archive -Path $zip -DestinationPath $dest -Force
+          $py = (Get-Command python -ErrorAction SilentlyContinue)?.Source
+          if (!$py) { Write-Host "[ERROR] Python not found. Install from python.org" -ForegroundColor Red; pause; exit 1 }
+          sc.exe create SentinelAIEDR binPath= "`"$py`" `"$dest\sentinelai_service.py`"" start= auto DisplayName= "SentinelAI - Enterprise Cyber Defense"
+          sc.exe start SentinelAIEDR
+          Write-Host "SentinelAI installed and running!" -ForegroundColor Green
+          pause
+          '@
+          $sfx | Out-File -FilePath "dist\installer\Install-SentinelAI.ps1" -Encoding UTF8
+
+          Write-Host "Installer package ready in dist\installer\"
+          Get-ChildItem "dist\installer\"
+
+      - name: Get version tag
+        id: version
+        shell: pwsh
         run: |
-          choco install innosetup --version=6.3.3 -y --no-progress
-        shell: powershell
+          $sha = "${{ github.sha }}".Substring(0,7)
+          $ver = "v1.0.0-$sha"
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $ver"
 
-      # ── 6. Build SentinelAI-Setup.exe with Inno Setup ────────────────────
-      - name: Build installer (Inno Setup)
-        run: |
-          New-Item -ItemType Directory -Force -Path "dist\installer"
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-        shell: powershell
-        working-directory: ${{ github.workspace }}
-
-      # ── 7. Get version for release name ───────────────────────────────────
-      - name: Get version
-        id: get_version
-        run: |
-          if ($env:GITHUB_REF -like 'refs/tags/*') {
-            $version = $env:GITHUB_REF -replace 'refs/tags/', ''
-          } else {
-            $version = "v1.0.0-build-$(Get-Date -Format 'yyyyMMdd-HHmm')"
-          }
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "Release version: $version"
-        shell: powershell
-
-      # ── 8. Create GitHub Release and upload installer ─────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          name: "SentinelAI ${{ steps.get_version.outputs.VERSION }}"
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "SentinelAI ${{ steps.version.outputs.VERSION }}"
           body: |
             ## SentinelAI — Enterprise Cyber Defense
-            
-            **Download and double-click to install.** 
-            One UAC prompt, then it runs silently in the background forever.
-            
+
+            ### How to install
+            1. Download `SentinelAI-Files.zip` below
+            2. Extract to a folder
+            3. Right-click `Install-SentinelAI.ps1` → **Run with PowerShell**
+            4. Done — runs silently in background at every boot
+
             ### What's included
             - ✅ 13 behavioral detection modules
-            - ✅ Ransomware, zero-day, process injection, LOLBAS detection
-            - ✅ Runs at every boot (Windows Service, no login needed)
-            - ✅ Automatic restart on failure
-            - ✅ No Python required on target PC
-            
-            ### System Requirements
-            - Windows 10/11 (64-bit)
-            - 4GB RAM recommended
-            
+            - ✅ Ransomware, zero-day, LOLBAS, LSASS, memory injection detection
+            - ✅ Runs as Windows Service (no login needed)
+            - ✅ Auto-restart on failure
+            - ✅ Windows 10/11 (64-bit)
+
           files: |
-            dist/installer/SentinelAI-Setup.exe
+            dist/installer/SentinelAI-Files.zip
+            dist/installer/Install-SentinelAI.ps1
           draft: false
           prerelease: false
         env:
