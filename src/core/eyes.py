@@ -742,20 +742,85 @@ def ai_malware_brain_scanner_watchdog():
 # ---------------------------------------------------------
 FIREBASE_DB_URL = "https://studio-167261963-da656-default-rtdb.firebaseio.com"
 
+# ── Load user config (created by installer, stores user email) ──────────────
+def _load_user_config():
+    """Read config.json written by the installer to get the user's identity."""
+    search_paths = [
+        os.path.join(os.environ.get('PROGRAMFILES', 'C:\\Program Files'), 'SentinelAI', 'config.json'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'config.json'),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'),
+    ]
+    for p in search_paths:
+        try:
+            if os.path.exists(p):
+                import json as _json
+                with open(p) as f:
+                    return _json.load(f)
+        except Exception:
+            pass
+    return {}
+
+_USER_CFG   = _load_user_config()
+USER_ID     = _USER_CFG.get('user_id', 'default_user')   # sanitized email key
+DEVICE_NAME = _USER_CFG.get('device_name', platform.node())
+
+def _severity_for(threat_type):
+    t = threat_type.lower()
+    if any(x in t for x in ['ransomware', 'rootkit', 'exploit', 'inject', 'c2', 'shell', 'zero-day']):
+        return 'Critical'
+    if any(x in t for x in ['trojan', 'backdoor', 'keylogger', 'stealer', 'rat']):
+        return 'High'
+    if any(x in t for x in ['suspicious', 'lolbas', 'double', 'canary', 'persistence']):
+        return 'Medium'
+    return 'Low'
+
 def push_threat_to_cloud(threat_type, details, target_filepath=""):
+    """Push a detected threat to Firebase under the user's own data path."""
     payload = {
-        "hostname": platform.node(),
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "hostname":    DEVICE_NAME,
+        "timestamp":   datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "threat_type": threat_type,
-        "details": details,
-        "file_name": os.path.basename(target_filepath) if target_filepath else "Memory / Process",
+        "details":     details,
+        "file_name":   os.path.basename(target_filepath) if target_filepath else "Memory / Process",
         "action_taken": "Terminated & Quarantined",
-        "status": "Blocked"
+        "status":      "Blocked",
+        "severity":    _severity_for(threat_type)
     }
     try:
-        requests.post(f"{FIREBASE_DB_URL}/threats.json", json=payload, timeout=2)
+        # Per-user path: /users/{user_id}/devices/{device}/threats
+        url = f"{FIREBASE_DB_URL}/users/{USER_ID}/devices/{DEVICE_NAME}/threats.json"
+        requests.post(url, json=payload, timeout=2)
     except Exception:
         pass
+
+def push_health_to_cloud():
+    """Background thread: pushes live PC health every 30 s so dashboard is always up-to-date."""
+    while True:
+        try:
+            disk_pct = 0
+            try:
+                import psutil as _ps
+                disk_pct = _ps.disk_usage('/').percent
+            except Exception:
+                pass
+
+            health = {
+                "device_name":    DEVICE_NAME,
+                "cpu":            latest_metrics.get('cpu_percent', 0),
+                "ram":            latest_metrics.get('ram_percent', 0),
+                "disk":           disk_pct,
+                "security_score": latest_metrics.get('safety_score', 100),
+                "health_status":  latest_metrics.get('health_status', 'SECURED (OPTIMAL)'),
+                "threats_count":  threats_counter,
+                "is_online":      True,
+                "last_seen":      datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            # PUT (not POST) so this overwrites instead of appending
+            url = f"{FIREBASE_DB_URL}/users/{USER_ID}/devices/{DEVICE_NAME}/health.json"
+            requests.put(url, json=health, timeout=3)
+        except Exception:
+            pass
+        time.sleep(30)
 
 def start_ai_engine():
     global ai_status
@@ -775,8 +840,12 @@ def start_ai_engine():
     threading.Thread(target=network_intent_watchdog, daemon=True).start()
     threading.Thread(target=double_extension_disguise_watchdog, daemon=True).start()
     threading.Thread(target=ai_malware_brain_scanner_watchdog, daemon=True).start()
+    # Cloud health heartbeat — pushes CPU/RAM/disk to dashboard every 30s
+    threading.Thread(target=push_health_to_cloud, daemon=True).start()
 
     print("[SUCCESS] All Security & Performance Threads Active.")
+    print(f"[CLOUD] Reporting to dashboard as: user={USER_ID}, device={DEVICE_NAME}")
+
 
 def create_shield_icon():
     width, height = 64, 64
