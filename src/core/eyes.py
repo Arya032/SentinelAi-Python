@@ -697,14 +697,16 @@ def ai_malware_brain_scanner_watchdog():
 
                         is_malicious = False
 
+
                         if brain_model is not None:
-                           try:
-                             features = [[file_size_kb, entropy, is_disguised, path_risk]]
-                             pred = brain_model.predict(features)
-                        if pred[0] == 1:
-                             is_malicious = True
-                        except Exception:
-                        pass
+                            try:
+                                features = [[file_size_kb, entropy, is_disguised, path_risk]]
+                                pred = brain_model.predict(features)
+                                if pred[0] == 1:
+                                    is_malicious = True
+                            except Exception:
+                                pass
+
 
                         if not is_malicious and entropy > 0.95 and lower_name.endswith(('.bin', '.exe', '.dat', '.scr', '.vbs', '.bat', '.cmd')):
                             if 'stealth_payload' in lower_name or 'payload' in lower_name or 'virus' in lower_name or 'zero' in lower_name or file_size_kb > 1000:
